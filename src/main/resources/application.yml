@@ -3,7 +3,7 @@ server:
 
 spring:
   config:
-    import: optional:classpath:application-local.yml
+    import: optional:file:./application-local.yml
   data:
     redis:
       host: localhost
