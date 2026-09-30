@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - 工作分支：`refactor/p1-foundation`（已创建）；回退点标签：`pre-refactor-baseline`（已存在）。本计划所有提交都在这条分支。
-- 后端端口固定 **8080**，不得更改。
+- 后端端口固定 **8090**，不得更改。（2026-09-30 决策变更：原定 8080 被本机另一项目 `qcsz/4T-open-user-bff` 占用，故本改为 8090；前端 `request.js` 的 `http://localhost:8080` 将在 P6 改为环境变量。）
 - **禁止提交任何密钥**；`application-local.yml` 必须被 gitignore，提交前 `git grep -n 'sk-'` 必须为空。
 - `Result` 响应结构保持 `{code,message,data}` 不变（前端不改）。
 - 不修改任何 URL 路径、请求/响应字段名。
@@ -251,7 +251,7 @@ Expected: BUILD SUCCESS，生成 `target/exam_system_online-1.0-SNAPSHOT.jar`。
 ```bash
 java -jar target/exam_system_online-1.0-SNAPSHOT.jar > /tmp/p1_boot.log 2>&1 &
 sleep 30
-curl -s http://localhost:8080/api/stats/overview | head -c 200
+curl -s http://localhost:8090/api/stats/overview | head -c 200
 kill %1
 ```
 
@@ -274,7 +274,12 @@ git commit -m "build: 升级 Spring Boot 3.5.3 / Java 21 / MyBatis-Plus 3.5.9 / 
 
 **Interfaces:**
 - Consumes: Task 2 的构建产物。
-- Produces: `KIMI_API_KEY` 占位 + `application-local.yml` 覆盖机制。
+- Produces: 端口 8090 + `KIMI_API_KEY` 占位 + `application-local.yml` 覆盖机制。
+
+- [ ] **Step 0: 端口改为 8090**
+
+把 `application.yml` 顶部的 `server.port: 8080` 改为 `8090`（8080 已被本机
+`qcsz/4T-open-user-bff` 占用）。后续所有 curl/冒烟命令使用 8090。
 
 - [ ] **Step 1: 改写 kimi 配置为占位符**
 
@@ -324,7 +329,7 @@ Expected: 输出 `CLEAN: 无明文密钥`（或只匹配到 `.example` 以外为
 mvn -q clean package -DskipTests
 java -jar target/exam_system_online-1.0-SNAPSHOT.jar > /tmp/p1_boot.log 2>&1 &
 sleep 30
-curl -s http://localhost:8080/api/stats/overview | head -c 120
+curl -s http://localhost:8090/api/stats/overview | head -c 120
 kill %1
 ```
 
@@ -391,8 +396,8 @@ cd /Users/qyk9527/ideaProject/exam_system_online
 mvn -q clean package -DskipTests
 java -jar target/exam_system_online-1.0-SNAPSHOT.jar > /tmp/p1_boot.log 2>&1 &
 sleep 30
-echo "--- health ---"; curl -s http://localhost:8080/actuator/health
-echo; echo "--- metrics(应 404) ---"; curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/actuator/metrics
+echo "--- health ---"; curl -s http://localhost:8090/actuator/health
+echo; echo "--- metrics(应 404) ---"; curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8090/actuator/metrics
 kill %1
 ```
 
@@ -484,10 +489,10 @@ mvn -q clean package -DskipTests
 java -jar target/exam_system_online-1.0-SNAPSHOT.jar > /tmp/p1_boot.log 2>&1 &
 sleep 30
 echo "--- allowed origin ---"
-curl -s -i -X OPTIONS http://localhost:8080/api/questions/list \
+curl -s -i -X OPTIONS http://localhost:8090/api/questions/list \
   -H "Origin: http://localhost:3001" -H "Access-Control-Request-Method: GET" | grep -i "access-control-allow-origin"
 echo "--- disallowed origin(应无 allow-origin) ---"
-curl -s -i -X OPTIONS http://localhost:8080/api/questions/list \
+curl -s -i -X OPTIONS http://localhost:8090/api/questions/list \
   -H "Origin: http://evil.example" -H "Access-Control-Request-Method: GET" | grep -i "access-control-allow-origin" || echo "OK: 未放行"
 kill %1
 ```
@@ -786,7 +791,7 @@ Expected: BUILD SUCCESS，2 个测试类共 4 个用例通过。
 mvn -q clean package -DskipTests
 java -jar target/exam_system_online-1.0-SNAPSHOT.jar > /tmp/p1_boot.log 2>&1 &
 sleep 30
-curl -s -X POST http://localhost:8080/api/exams/start \
+curl -s -X POST http://localhost:8090/api/exams/start \
   -H 'Content-Type: application/json' -d '{"paperId":null,"studentName":""}'
 kill %1
 ```
@@ -811,7 +816,7 @@ git commit -m "feat: 新增 ErrorCode/BizException 与统一异常处理，参�
 - Create: `scripts/smoke.sh`
 
 **Interfaces:**
-- Consumes: 8080 端口、构建产物 jar、本机 MySQL/Redis。
+- Consumes: 8090 端口、构建产物 jar、本机 MySQL/Redis。
 - Produces: 可重复运行的端到端冒烟验证，失败即非零退出。
 
 - [ ] **Step 1: 编写冒烟脚本**
@@ -822,7 +827,7 @@ git commit -m "feat: 新增 ErrorCode/BizException 与统一异常处理，参�
 #!/usr/bin/env bash
 set -uo pipefail
 
-APP_PORT=8080
+APP_PORT=8090
 JAR="target/exam_system_online-1.0-SNAPSHOT.jar"
 BASE="http://localhost:${APP_PORT}"
 LOG=/tmp/exam_smoke_app.log

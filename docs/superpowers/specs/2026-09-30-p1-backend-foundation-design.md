@@ -76,7 +76,7 @@ MyBatis-Plus 3.5.3.2，118 个类，约 7800 行），配套前端为 Vue 3 + Vi
   - `/api/questions/list`、`/api/papers/list`、`/api/categories`、`/api/categories/tree`
   - `/api/videos`、`/api/videos/popular`、`/api/banners/active`、`/api/notices/active`
   - `/api/stats/overview`、`/api/video-categories/tree`
-- 启动端口 8080；脚本内可用 `--skip-build` 复用已有产物。
+- 启动端口 8090；脚本内可用 `--skip-build` 复用已有产物。
 
 ## 5. P1 详细设计
 
@@ -157,7 +157,7 @@ MyBatis-Plus 3.5.3.2，118 个类，约 7800 行），配套前端为 Vue 3 + Vi
 
 | 决策 | 选择 | 理由 |
 |---|---|---|
-| 后端端口 | 保留 **8080** | 现状前端写死 8080；P6 再改为环境变量 |
+| 后端端口 | **8090**（2026-09-30 变更，原定 8080） | 8080 被本机 `qcsz/4T-open-user-bff` 占用；P6 前端改用环境变量 |
 | Spring Boot | **3.5.3** | 本地 m2 已有，无需联网，稳 |
 | 密钥存放 | **`application-local.yml`**（gitignore） | 用户选择本地文件方案 |
 | 架构风格 | 单模块深度分层 | P4 执行，本阶段不改包结构 |
@@ -165,9 +165,9 @@ MyBatis-Plus 3.5.3.2，118 个类，约 7800 行），配套前端为 Vue 3 + Vi
 
 ## 7. 验收标准
 
-1. `mvn clean package -DskipTests` 在 Java 21 下通过；`java -jar` 可启动于 8080。
+1. `mvn clean package -DskipTests` 在 Java 21 下通过；`java -jar` 可启动于 8090。
 2. `scripts/smoke.sh` 全绿（上述接口均 `code == 200`）。
-3. 前端**不做任何修改**仍能正常调用后端（登录仍为现有空壳，属预期）。
+3. 前端**本阶段不做修改**；因端口改为 8090，前端 `request.js` 仍指向 8080，故 P1 结束时前端无法直接连通（将在 P6 改为环境变量）。接口契约本身保持不变。
 4. `git grep -n 'sk-'` 无命中；`application-local.yml` 已被 gitignore。
 5. 仓库内不再有 `@CrossOrigin`、`@Log4j2`；Hikari 参数为 §5.3 目标值。
 6. 新增单测：`ResultTest`、`GlobalExceptionHandlerTest`；`mvn test -Dtest=...` 通过。
