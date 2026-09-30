@@ -109,7 +109,7 @@ MyBatis-Plus 3.5.3.2，118 个类，约 7800 行），配套前端为 Vue 3 + Vi
 
 - 新增 `application-local.yml`，加入 `.gitignore`；`application.yml` 中密钥改为
   `${KIMI_API_KEY:}` 占位并从本地文件/环境注入。
-- 移除 `application.yml` 明文 `api-key`；提交后 `git grep 'sk-'` 必须为空。
+- 移除 `application.yml` 明文 `api-key`；提交后 `git grep -n 'sk-' -- 'src/**' 'application.yml' 'pom.xml'` 必须为空（文档/模板占位不算）。
 - Profile 约定：`dev`（默认，指向 localhost 中间件）、`local`（个人覆盖）、`prod`。
 - **新增** `spring.config.import: optional:classpath:application-local.yml`（现状无此配置）。
 - `.gitignore` 增加 `application-local.yml`（及 `application-local*.yml`）。
@@ -168,7 +168,7 @@ MyBatis-Plus 3.5.3.2，118 个类，约 7800 行），配套前端为 Vue 3 + Vi
 1. `mvn clean package -DskipTests` 在 Java 21 下通过；`java -jar` 可启动于 8090。
 2. `scripts/smoke.sh` 全绿（上述接口均 `code == 200`）。
 3. 前端**本阶段不做修改**；因端口改为 8090，前端 `request.js` 仍指向 8080，故 P1 结束时前端无法直接连通（将在 P6 改为环境变量）。接口契约本身保持不变。
-4. `git grep -n 'sk-'` 无命中；`application-local.yml` 已被 gitignore。
+4. `git grep -n 'sk-' -- 'src/**' 'application.yml' 'pom.xml'` 无命中；`application-local.yml` 已被 gitignore。
 5. 仓库内不再有 `@CrossOrigin`、`@Log4j2`；Hikari 参数为 §5.3 目标值。
 6. 新增单测：`ResultTest`、`GlobalExceptionHandlerTest`；`mvn test -Dtest=...` 通过。
 7. `git tag pre-refactor-baseline` 存在，工作落在 `refactor/p1-foundation` 分支。

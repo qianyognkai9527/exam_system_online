@@ -12,7 +12,7 @@
 
 - 工作分支：`refactor/p1-foundation`（已创建）；回退点标签：`pre-refactor-baseline`（已存在）。本计划所有提交都在这条分支。
 - 后端端口固定 **8090**，不得更改。（2026-09-30 决策变更：原定 8080 被本机另一项目 `qcsz/4T-open-user-bff` 占用，故本改为 8090；前端 `request.js` 的 `http://localhost:8080` 将在 P6 改为环境变量。）
-- **禁止提交任何密钥**；`application-local.yml` 必须被 gitignore，提交前 `git grep -n 'sk-'` 必须为空。
+- **禁止提交任何密钥**；`application-local.yml` 必须被 gitignore，提交前 `git grep -n 'sk-' -- 'src/**' 'application.yml' 'pom.xml'` 必须为空（文档/模板中的 `sk-...` 占位不算）。
 - `Result` 响应结构保持 `{code,message,data}` 不变（前端不改）。
 - 不修改任何 URL 路径、请求/响应字段名。
 - 构建环境（每条构建命令前先导出）：
@@ -318,7 +318,7 @@ mybatis-plus:
 
 ```bash
 cd /Users/qyk9527/ideaProject/exam_system_online
-git grep -n 'sk-' -- . ':!*.example' || echo "CLEAN: 无明文密钥"
+git grep -n 'sk-' -- 'src/**' 'application.yml' 'pom.xml' || echo "CLEAN: 无明文密钥"
 ```
 
 Expected: 输出 `CLEAN: 无明文密钥`（或只匹配到 `.example` 以外为空）。
@@ -906,7 +906,7 @@ git commit -m "test: 新增端到端冒烟脚本 scripts/smoke.sh"
 
 ```bash
 cd /Users/qyk9527/ideaProject/exam_system_online
-echo "1) 明文密钥:"; git grep -n 'sk-' -- . ':!*.example' || echo "  CLEAN"
+echo "1) 明文密钥:"; git grep -n 'sk-' -- 'src/**' 'application.yml' 'pom.xml' || echo "  CLEAN"
 echo "2) CrossOrigin 残留:"; grep -rc '@CrossOrigin' src/main/java | grep -v ':0' || echo "  CLEAN"
 echo "3) Log4j2 残留:"; grep -rn '@Log4j2' src/main/java || echo "  CLEAN"
 echo "4) 分支/标签:"; git branch --show-current; git tag | grep pre-refactor-baseline
