@@ -18,7 +18,7 @@ import com.joker.ai.exam.service.QuestionService;
 import com.joker.ai.exam.vo.AiPaperVo;
 import com.joker.ai.exam.vo.PaperVo;
 import com.joker.ai.exam.vo.RuleVo;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * @since 2026-04-09
  */
 
-@Log4j2
+@Slf4j
 @Service
 public class PaperServiceImpl extends ServiceImpl<PaperMapper, Paper> implements PaperService {
 

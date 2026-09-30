@@ -8,7 +8,6 @@ import com.joker.ai.exam.vo.StatsVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController  // REST控制器，返回JSON数据
 @RequestMapping("/api/stats")  // 统计API路径前缀
-@CrossOrigin(origins = "*")  // 允许跨域访问
 @Tag(name = "数据统计", description = "系统统计相关操作，包括概览数据、图表统计等功能")  // Swagger API分组
 public class StatsController {
 

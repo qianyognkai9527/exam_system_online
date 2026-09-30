@@ -19,7 +19,7 @@ import com.joker.ai.exam.vo.GradingResult;
 import com.joker.ai.exam.vo.StartExamVo;
 import com.joker.ai.exam.vo.SubmitAnswerVo;
 import jakarta.annotation.Resource;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  * @author joker
  * @since 2026-04-09
  */
-@Log4j2
+@Slf4j
 @Service
 public class ExamRecordServiceImpl extends ServiceImpl<ExamRecordMapper, ExamRecord> implements ExamRecordService {
 

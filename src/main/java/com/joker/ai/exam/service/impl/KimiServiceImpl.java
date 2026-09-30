@@ -10,14 +10,14 @@ import com.joker.ai.exam.vo.AiGenerateRequestVo;
 import com.joker.ai.exam.vo.GradingResult;
 import com.joker.ai.exam.vo.QuestionImportVo;
 import jodd.util.StringUtil;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
 
-@Log4j2
+@Slf4j
 @Service
 public class KimiServiceImpl implements KimiService {
 

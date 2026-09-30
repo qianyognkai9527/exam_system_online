@@ -10,6 +10,7 @@ import com.joker.ai.exam.vo.SubmitAnswerVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +22,6 @@ import java.util.List;
  */
 @RestController  // REST控制器，返回JSON数据
 @RequestMapping("/api/exams")  // 考试API路径前缀
-@CrossOrigin(origins = "*")  // 允许跨域访问
 @Tag(name = "考试管理", description = "考试流程相关操作，包括开始考试、答题提交、AI批阅、成绩查询等功能")  // Swagger API分组
 public class ExamController {
 
@@ -35,7 +35,7 @@ public class ExamController {
      */
     @PostMapping("/start")  // 处理POST请求
     @Operation(summary = "开始考试", description = "学生开始考试，创建考试记录并返回试卷内容")  // API描述
-    public Result<ExamRecord> startExam(@RequestBody StartExamVo startExamVo) {
+    public Result<ExamRecord> startExam(@Valid @RequestBody StartExamVo startExamVo) {
         // TODO: 从SecurityContext获取当前登录用户ID  // 暂时使用固定用户ID
         ExamRecord examRecord = examRecordService.startExam(startExamVo);
         return Result.success(examRecord, "考试开始成功");
