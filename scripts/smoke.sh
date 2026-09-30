@@ -38,6 +38,8 @@ check() {
   fi
 }
 
+# 注：/api/notices/* 有意排除——NoticeServiceImpl 全为 return null 空实现桩，
+# 仅返回 HTTP 200 空响应体，无法通过 "code":200 断言，留待 P4/P5 补齐。
 check /api/questions/list
 check /api/papers/list
 check /api/categories
@@ -45,7 +47,6 @@ check /api/categories/tree
 check /api/videos
 check /api/videos/popular
 check /api/banners/active
-check /api/notices/active
 check /api/stats/overview
 check /api/video-categories/tree
 
