@@ -21,7 +21,6 @@ import java.util.List;
  * 试卷控制器 - 处理试卷管理相关的HTTP请求
  * 包括试卷的CRUD操作、AI智能组卷、状态管理等功能
  */
-@CrossOrigin
 @Log4j2
 @RestController  // REST控制器，返回JSON数据
 @RequestMapping("/api/papers")  // 试卷API路径前缀

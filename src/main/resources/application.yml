@@ -60,6 +60,10 @@ kimi:
     max-tokens: 8192  # 最大生成token数
     temperature: 0.3  # 较低的temperature确保判卷结果稳定
 
+app:
+  cors:
+    allowed-origins: http://localhost:3001
+
 management:
   endpoints:
     web:

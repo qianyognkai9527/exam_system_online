@@ -20,7 +20,6 @@ import java.util.List;
  * 考试记录控制器 - 处理考试记录管理相关的HTTP请求
  * 包括考试记录查询、分页展示、成绩排行榜等功能
  */
-@CrossOrigin
 @RestController  // REST控制器，返回JSON数据
 @RequestMapping("/api/exam-records")  // 考试记录API路径前缀
 @Tag(name = "考试记录管理", description = "考试记录相关操作，包括记录查询、成绩管理、排行榜展示等功能")  // Swagger API分组
