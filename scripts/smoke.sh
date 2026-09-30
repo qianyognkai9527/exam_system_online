@@ -21,7 +21,7 @@ PID=$!
 
 echo "等待应用启动（最多 120s）..."
 for i in $(seq 1 60); do
-  if curl -s -o /dev/null "${BASE}/api/stats/overview"; then break; fi
+  if curl -s -o /dev/null --connect-timeout 3 --max-time 10 "${BASE}/api/stats/overview"; then break; fi
   sleep 2
 done
 
@@ -29,8 +29,8 @@ fail=0
 check() {
   local path="$1"
   local body
-  body=$(curl -s "${BASE}${path}")
-  if printf '%s' "$body" | grep -q '"code":200'; then
+  body=$(curl -s --connect-timeout 3 --max-time 10 "${BASE}${path}")
+  if printf '%s' "$body" | grep -qE '"code":200([,}])'; then
     echo "OK   ${path}"
   else
     echo "FAIL ${path} -> ${body:0:200}"

@@ -36,4 +36,21 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals(404, response.getBody().getCode());
     }
+
+    @Test
+    void handleValidationException_returns400WithFieldMessage() {
+        org.springframework.validation.BindException ex =
+                new org.springframework.validation.BindException(new Object(), "startExamVo");
+        ex.addError(new org.springframework.validation.FieldError("startExamVo", "studentName", "考生姓名不能为空"));
+        Result<Void> result = handler.handleValidationException(ex);
+        assertEquals(400, result.getCode());
+        assertEquals("考生姓名不能为空", result.getMessage());
+    }
+
+    @Test
+    void handleMethodNotSupported_returns405() {
+        Result<Void> result = handler.handleMethodNotSupported(
+                new org.springframework.web.HttpRequestMethodNotSupportedException("POST"));
+        assertEquals(405, result.getCode());
+    }
 }

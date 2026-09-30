@@ -7,6 +7,8 @@ public enum ErrorCode {
     UNAUTHORIZED(401, "未登录或登录已过期"),
     FORBIDDEN(403, "无权限访问"),
     NOT_FOUND(404, "资源不存在"),
+    METHOD_NOT_ALLOWED(405, "请求方法不支持"),
+    UNSUPPORTED_MEDIA_TYPE(415, "不支持的媒体类型"),
     BUSINESS_ERROR(500, "业务处理失败"),
     SYSTEM_ERROR(500, "系统繁忙，请稍后重试");
 

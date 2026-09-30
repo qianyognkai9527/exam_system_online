@@ -127,6 +127,16 @@ OpenAPI JSON 正常生成、UI 可访问。
    这些桩会使对应接口返回 HTTP 200 + 空响应体；除 `/api/notices/*` 外，其余桩所在的接口
    恰好未被冒烟脚本覆盖，故当前冒烟为绿。
 
+7. **密钥轮换（必须人工执行）**：旧 Moonshot key `sk-sX3N2...` 仍存在于 git 历史
+   （初始提交 `5dfd399`）；工作区删除并不能消除泄露，必须在 Moonshot 侧吊销/轮换该 key
+   （可选：用 `git filter-repo` 清理历史）。
+8. **基线明文凭据**：`docs/db/baseline/online_exam_data_baseline.sql` 固化了
+   `admin/admin123`；`application.yml` 使用本地 `root/root123456` / `minioadmin`。
+9. **CORS**：默认仅放行 `http://localhost:3001`；`127.0.0.1:3001` 或其他开发端口
+   需通过 `app.cors.allowed-origins` 覆盖。
+10. **HTTP 约定**：成功/业务/校验/方法/媒体类型错误均返回 HTTP 200 并在响应体带 `code`
+    字段；仅未映射路径返回真正的 HTTP 404。
+
 ## 7. 结论
 
 - P1 目标版本、密钥外置、Hikari/日志/Actuator、CORS 白名单、`@Slf4j` 统一、
