@@ -5,7 +5,7 @@ import cn.hutool.core.util.IdUtil;
 import com.joker.ai.exam.config.MinioProperties;
 import com.joker.ai.exam.service.FileUploadService;
 import io.minio.*;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Date;
 
 
-@Log4j2
+@Slf4j
 @Service
 public class FileUploadServiceImpl implements FileUploadService {
 

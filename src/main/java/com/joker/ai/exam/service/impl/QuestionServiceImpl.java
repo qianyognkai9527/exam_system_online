@@ -19,7 +19,7 @@ import com.joker.ai.exam.utils.RedisUtils;
 import com.joker.ai.exam.vo.QuestionImportVo;
 import com.joker.ai.exam.vo.QuestionQueryVo;
 import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * @author joker
  * @since 2026-04-09
  */
-@Log4j2
+@Slf4j
 @Service
 public class QuestionServiceImpl extends ServiceImpl<QuestionsMapper, Question> implements QuestionService {
 
