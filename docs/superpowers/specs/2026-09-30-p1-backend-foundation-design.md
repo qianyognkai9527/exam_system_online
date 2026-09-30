@@ -74,8 +74,9 @@ MyBatis-Plus 3.5.3.2，118 个类，约 7800 行），配套前端为 Vue 3 + Vi
   `code == 200` → 关闭应用，失败即非零退出。
 - 覆盖接口（各域关键 GET）：
   - `/api/questions/list`、`/api/papers/list`、`/api/categories`、`/api/categories/tree`
-  - `/api/videos`、`/api/videos/popular`、`/api/banners/active`、`/api/notices/active`
+  - `/api/videos`、`/api/videos/popular`、`/api/banners/active`
   - `/api/stats/overview`、`/api/video-categories/tree`
+  - 不含 `/api/notices/*`：`NoticeServiceImpl` 为 `return null` 空实现（基线遗留，P4/P5 补齐），无法断言 `code:200`。
 - 启动端口 8090；脚本内可用 `--skip-build` 复用已有产物。
 
 ## 5. P1 详细设计

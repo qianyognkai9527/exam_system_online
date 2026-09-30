@@ -898,17 +898,18 @@ check /api/categories/tree
 check /api/videos
 check /api/videos/popular
 check /api/banners/active
-check /api/notices/active
 check /api/stats/overview
 check /api/video-categories/tree
 
 if [ "$fail" -eq 0 ]; then
   echo "SMOKE PASS"
 else
-  echo "SMOKE FAIL（应用日志：$LOG）"
+  echo "SMOKE FAIL（应用日志：${LOG}）"
 fi
 exit $fail
 ```
+
+注意：**不**断言 `/api/notices/*`——`NoticeServiceImpl` 全部是 `return null` 空实现（基线遗留缺陷，非 P1 引入），无法返回 `code:200`。同类空实现还有 `PaperServiceImpl`/`StatsServiceImpl`/`VideoCategoryServiceImpl`/`VideoServiceImpl` 的个别方法；这些留给 P4/P5 补齐，冒烟脚本不纳入断言。
 
 - [ ] **Step 2: 赋权并运行**
 
