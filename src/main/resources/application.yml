@@ -23,13 +23,12 @@ spring:
     username: root
     password: root123456
     hikari:
-      connection-test-query: SELECT 1 # 自动检测连接
-      connection-timeout: 60000 #数据库连接超时时间,默认30秒
-      idle-timeout: 60000 #空闲连接存活最大时间，默认600000（10分钟）
-      max-lifetime: 60000 #此属性控制池中连接的最长生命周期，值0表示无限生命周期，默认1800000即30分钟
-      maximum-pool-size: 8 #连接池最大连接数，默认是10
-      minimum-idle: 8 #最小空闲连接数量
-      pool-name: EXAMHikariPool # 连接池名称
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      maximum-pool-size: 20
+      minimum-idle: 5
+      pool-name: EXAMHikariPool
   main:
     allow-circular-references: true
 
@@ -37,7 +36,7 @@ spring:
 mybatis-plus:
   mapper-locations: classpath:mapper/*Mapper.xml
   configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
     auto-mapping-behavior: full
   global-config:
     db-config:
@@ -60,3 +59,9 @@ kimi:
     model: moonshot-v1-32k  # 使用8k上下文模型进行判卷
     max-tokens: 8192  # 最大生成token数
     temperature: 0.3  # 较低的temperature确保判卷结果稳定
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
