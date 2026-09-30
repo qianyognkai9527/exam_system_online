@@ -111,7 +111,7 @@ MyBatis-Plus 3.5.3.2，118 个类，约 7800 行），配套前端为 Vue 3 + Vi
   `${KIMI_API_KEY:}` 占位并从本地文件/环境注入。
 - 移除 `application.yml` 明文 `api-key`；提交后 `git grep -n 'sk-' -- 'src/**' 'application.yml' 'pom.xml'` 必须为空（文档/模板占位不算）。
 - Profile 约定：`dev`（默认，指向 localhost 中间件）、`local`（个人覆盖）、`prod`。
-- **新增** `spring.config.import: optional:classpath:application-local.yml`（现状无此配置）。
+- **新增** `spring.config.import: optional:file:./application-local.yml`（现状无此配置）。本地文件放仓库根目录，必须用 `file:./` 而非 `classpath:`（jar 运行时 classpath 不含仓库根目录）。
 - `.gitignore` 增加 `application-local.yml`（及 `application-local*.yml`）。
 
 ### 5.3 运行时加固（P1.3）

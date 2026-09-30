@@ -295,8 +295,10 @@ git commit -m "build: 升级 Spring Boot 3.5.3 / Java 21 / MyBatis-Plus 3.5.9 / 
 
 ```yaml
   config:
-    import: optional:classpath:application-local.yml
+    import: optional:file:./application-local.yml
 ```
+
+说明：本地文件放仓库根目录，必须用 `file:./`（相对工作目录）；`classpath:` 不会加载仓库根目录的文件（jar 运行时 classpath 里没有它）。应用从项目根目录启动（IDE / `java -jar` 均默认在根目录）。
 
 - [ ] **Step 3: 新建本地配置模板**
 
