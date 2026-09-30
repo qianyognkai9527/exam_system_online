@@ -403,7 +403,7 @@ echo; echo "--- metrics(应 404) ---"; curl -s -o /dev/null -w "%{http_code}\n" 
 kill %1
 ```
 
-Expected: health 返回 `{"status":"UP"...}`；metrics 返回 `404`。
+Expected: health 返回 `{"status":"UP"...}`；`/actuator/metrics` **不在暴露列表**（`/actuator` 链接列表只含 health/info）。注意：当前全局异常处理器把未映射路径的 `NoResourceFoundException` 吞成 HTTP 200+code500，故本步 metrics 实际返回 200 而非 404——**该 404 行为由 Task 7 修正**，本任务只对「endpoint 未暴露」负责。
 
 - [ ] **Step 5: 提交**
 
@@ -583,7 +583,7 @@ git commit -m "refactor: 日志注解统一为 @Slf4j（移除未引入的 log4j
 - Produces:
   - `ErrorCode` 枚举：`SUCCESS/PARAM_ERROR/UNAUTHORIZED/FORBIDDEN/NOT_FOUND/BUSINESS_ERROR/SYSTEM_ERROR`，方法 `getCode():int`、`getMessage():String`。
   - `BizException extends RuntimeException`，构造 `(String)`、`(ErrorCode)`、`(ErrorCode,String)`，方法 `getErrorCode():ErrorCode`。
-  - `GlobalExceptionHandler`：`handleBizException(BizException)`、`handleValidationException(BindException)`、`handleException(Exception)`，均返回 `Result<Void>`。
+  - `GlobalExceptionHandler`：`handleBizException(BizException)`、`handleValidationException(BindException)`、`handleNotFoundException(NoResourceFoundException)` 返回 `ResponseEntity<Result<Void>>`(404)、`handleException(Exception)` 返回 `Result<Void>`。
 
 - [ ] **Step 1: 写 ErrorCode 单测（先失败）**
 
@@ -704,6 +704,9 @@ import com.joker.ai.exam.common.BizException;
 import com.joker.ai.exam.common.ErrorCode;
 import com.joker.ai.exam.common.Result;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -724,6 +727,15 @@ class GlobalExceptionHandlerTest {
         assertEquals(500, result.getCode());
         assertEquals(ErrorCode.SYSTEM_ERROR.getMessage(), result.getMessage());
     }
+
+    @Test
+    void handleNotFoundException_returnsHttp404() {
+        NoResourceFoundException ex = new NoResourceFoundException(
+                org.springframework.http.HttpMethod.GET, "/actuator/metrics");
+        ResponseEntity<Result<Void>> response = handler.handleNotFoundException(ex);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals(404, response.getBody().getCode());
+    }
 }
 ```
 
@@ -738,10 +750,13 @@ import com.joker.ai.exam.common.BizException;
 import com.joker.ai.exam.common.ErrorCode;
 import com.joker.ai.exam.common.Result;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -761,6 +776,13 @@ public class GlobalExceptionHandler {
         return Result.error(ErrorCode.PARAM_ERROR.getCode(), message);
     }
 
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Result<Void>> handleNotFoundException(NoResourceFoundException e) {
+        log.warn("资源不存在：{}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Result.error(ErrorCode.NOT_FOUND.getCode(), ErrorCode.NOT_FOUND.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public Result<Void> handleException(Exception e) {
         log.error("系统异常", e);
@@ -775,7 +797,7 @@ public class GlobalExceptionHandler {
 mvn -q test -Dtest=ResultTest,GlobalExceptionHandlerTest
 ```
 
-Expected: BUILD SUCCESS，2 个测试类共 4 个用例通过。
+Expected: BUILD SUCCESS，2 个测试类共 5 个用例通过。
 
 - [ ] **Step 7: 让参数校验生效**
 
@@ -787,7 +809,7 @@ Expected: BUILD SUCCESS，2 个测试类共 4 个用例通过。
 
 并确保文件已导入 `jakarta.validation.Valid`。
 
-- [ ] **Step 8: 验证非法参数返回 400**
+- [ ] **Step 8: 验证非法参数返回 400 + 未映射路径返回 404**
 
 ```bash
 mvn -q clean package -DskipTests
@@ -795,10 +817,13 @@ java -jar target/exam_system_online-1.0-SNAPSHOT.jar > /tmp/p1_boot.log 2>&1 &
 sleep 30
 curl -s -X POST http://localhost:8090/api/exams/start \
   -H 'Content-Type: application/json' -d '{"paperId":null,"studentName":""}'
+echo; echo "--- metrics 应 404 ---"
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8090/actuator/metrics
 kill %1
 ```
 
-Expected: 返回 `{"code":400,"message":"试卷ID不能为空",...}` 或 `考生姓名不能为空`。
+Expected: 第一条返回 `{"code":400,"message":"试卷ID不能为空",...}` 或 `考生姓名不能为空`；
+metrics 返回 `404`（Task 4 的遗留项在此修正）。
 
 - [ ] **Step 9: 提交**
 
@@ -952,7 +977,8 @@ git commit -m "docs: P1 后端底座现代化完成报告"
 **2. Placeholder scan:** 无 TBD/TODO；所有代码步骤含真实代码或真实命令。
 
 **3. Type consistency:** `ErrorCode.getCode()/getMessage()`、`BizException.getErrorCode()`、
-`Result.error(Integer,String)`、`GlobalExceptionHandler` 三个方法签名在任务与测试中一致。
+`Result.error(Integer,String)`、`GlobalExceptionHandler` 四个方法签名在任务与测试中一致
+（新增 `handleNotFoundException` 返回 `ResponseEntity<Result<Void>>`，负责未映射路径 404）。
 
 **已知偏差说明（需执行者知悉）:**
 - Spec 提到「关键 VO 增加校验注解」，实际 `StartExamVo` **已含** `@NotNull/@NotBlank`，
