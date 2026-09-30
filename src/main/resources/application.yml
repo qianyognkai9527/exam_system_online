@@ -1,7 +1,9 @@
 server:
-  port: 8080
+  port: 8090
 
 spring:
+  config:
+    import: optional:classpath:application-local.yml
   data:
     redis:
       host: localhost
@@ -53,7 +55,7 @@ minio:
 kimi:
   api:
     base-url: https://api.moonshot.cn/v1/chat/completions
-    api-key: sk-sX3N2fihXZctt4oBrXvFiKh6b3pVuhuAxLTVOS1CHWRylhpy  # 从环境变量获取，或使用默认值
+    api-key: ${KIMI_API_KEY:}   # 真实值放 application-local.yml 或环境变量
     #    model: kimi-k2-thinking-turbo  # 使用8k上下文模型进行判卷
     model: moonshot-v1-32k  # 使用8k上下文模型进行判卷
     max-tokens: 8192  # 最大生成token数
