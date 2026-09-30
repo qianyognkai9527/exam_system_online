@@ -111,11 +111,11 @@ OpenAPI JSON 正常生成、UI 可访问。
    `success(String message)`（消息重载）而非 `success(T data)`，导致数据被当作消息、
    `data=null`。66 处既有调用依赖此重载，暂不能删除；调用方若想返回字符串数据需显式
    转型（如 `Result.success((Object) "x")`）。P4 可用静态方法命名区分收敛。
-5. **兜底异常处理器对未映射的 MVC 异常仍返回 HTTP 200**：仅
-   `NoResourceFoundException` 映射为真正的 HTTP 404；`HttpRequestMethodNotSupportedException`（应 405）、
-   `HttpMediaTypeNotSupportedException`（应 415）、`MissingServletRequestParameterException`（应 400）
-   等仍落到 `handleException(Exception)`，返回 HTTP 200 + `{"code":500,...}`。浏览器/客户端
-   若依赖 HTTP 状态码会误判；扩面映射列为 P4 后续候选项。
+5. **未映射路径返回真正的 HTTP 404**：`NoResourceFoundException` 映射为 HTTP 404。
+   客户端协议类错误已各自处理为正确的业务码（HTTP 200 + `code`）：
+   `HttpRequestMethodNotSupportedException`→405、`HttpMediaTypeNotSupportedException`→415、
+   `MissingServletRequestParameterException`→400。其余未预期异常仍由 `handleException(Exception)`
+   兜底返回 HTTP 200 + `{"code":500,...}`（沿用本项目「HTTP 200 + 业务 code」约定，前端按 code 判断）。
 6. **预先存在的空实现（`return null`）Service 桩**：基线即为未实现，非 P1 引入，
    计划在 **P4/P5** 补齐：
    - `NoticeServiceImpl` — 7 个方法全部 `return null`
