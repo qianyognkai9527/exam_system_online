@@ -30,4 +30,10 @@ public class LoginResponseVo {
     @Schema(description = "登录令牌，用于后续API调用的身份验证", 
             example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String token; // 登录令牌
+
+    @Schema(description = "刷新令牌（不透明串，存 Redis，可即时吊销）")
+    private String refreshToken;
+
+    @Schema(description = "access token 有效期（秒）", example = "7200")
+    private long expiresIn;
 } 

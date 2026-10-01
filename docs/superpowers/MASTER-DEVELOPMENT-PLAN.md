@@ -51,7 +51,7 @@
 
 - MySQL 本机直装；Redis + MinIO 走 Docker（用户约定）。
 - 后端端口 **8090**（原 8080 因被另一项目 `qcsz/4T-open-user-bff` 占用而改）。
-- 前端 dev 端口 3001（`vite.config.js`），其 `request.js` 仍写死 `http://localhost:8080`，**P6 需改为环境变量指向 8090**。
+- 前端 dev 端口 3001（`vite.config.ts` 读 `VITE_DEV_PORT`）。前端 `request.ts` 的 baseURL 已改为读 `VITE_API_BASE_URL`，`.env.development` 指向 **8090**（2026-10-01 P6 已完成，原先写死 8080 导致全站请求打不到后端）。
 
 ---
 
@@ -77,7 +77,8 @@ src/main/java/com/joker/ai/exam/
 └── vo/        25 个 DTO/VO
 ```
 
-- **无 Spring Security**；`UserController.login` 空壳返回 null、`checkAdmin` 恒 true（P2 修）。
+- **已有 Spring Security + JWT**（P2，2026-10-01）：`auth/` 包 + `AuthController`；`users.password` 已 BCrypt、`role` 归一大写；`UserController.checkAdmin` 走真实角色判定。
+- 遗留：`/api/exams/{id}` 无数据级 ownership 校验（P4）；`QuestionController`/`ExamController` 仍有 7 个 `Result.success(null)` 空桩（见 §9.5b）。
 - 存在循环依赖：`application.yml` 里 `spring.main.allow-circular-references: true`（P4 消除）。
 - Kimi 判卷是**请求线程内同步阻塞**调用（`InterruptedException` 透出），需 P4 异步化。
 
@@ -200,11 +201,11 @@ com.joker.ai.exam
 |---|---|---|
 | **P0** | 基线保护（git 标签/分支、DB dump、冒烟脚本） | ✅ 完成 |
 | **P1** | 后端底座现代化（版本、密钥、Hikari/日志/Actuator、CORS、异常/校验） | ✅ 完成（已合并 main） |
-| **P2** | 认证鉴权（Spring Security + JWT + 角色） | ⬜ 待做 |
+| **P2** | 认证鉴权（Spring Security + JWT + 角色） | ✅ 完成（2026-10-01）：JWT access + Redis refresh 轮换、`/api/**` 默认需登录、学生/管理员分权实测通过，`mvn test` 18/18、冒烟扩到 14 项 PASS。遗留见 `docs/superpowers/2026-10-01-p2-auth-completion.md` §4 |
 | **P3** | 数据层重建（schema 重设计 + Flyway + 数据迁移 + SQL IO 优化） | ⬜ 待做 |
 | **P4** | 深度分层 + 核心域重构（feature 分包、DTO/VO 分离、MapStruct、异步判卷） | ⬜ 待做 |
 | **P5** | 补齐缺失业务（企业真题、模拟面试、邀请码、积分、企业、投稿/待审 + 补空实现桩） | ⬜ 待做 |
-| **P6** | 前端工程化 + TS（Vite 7、TS、Pinia、统一 request、env、lint） | ⬜ 待做 |
+| **P6** | 前端工程化 + TS（Vite 7、TS、Pinia、统一 request、env、lint） | ✅ 完成（2026-10-01）：41 视图全迁 TS，`npm run verify` 全绿，已用真实后端 + 浏览器逐项核验。详见前端 `docs/superpowers/2026-10-01-p6-completion.md` |
 | **P7** | 前端 UI 重做（设计系统、布局、页面） | ⬜ 待做 |
 | **P8** | 测试/文档/交付（单测/集成测试、README、OpenAPI、docker-compose、CI） | ⬜ 待做 |
 
@@ -489,11 +490,25 @@ cp application-local.yml.example application-local.yml   # 填 KIMI_API_KEY；�
 3. **循环依赖开关**：`spring.main.allow-circular-references: true` 仍开，P4 消除后移除。
 4. **`Result.success(String)` 重载陷阱**：`success("x")` 会命中 `success(String message)`，导致 `data=null`。想返回字符串数据需 `Result.success((Object) "x")`；P4 用命名区分收敛（66 处调用依赖，勿直接删）。
 5. **空实现 Service 桩（`return null`）**：`NoticeServiceImpl`(7 方法全空)、`PaperServiceImpl`(1)、`StatsServiceImpl`(1)、`VideoCategoryServiceImpl`(1)、`VideoServiceImpl`(3)。对应接口返回 HTTP 200 + 空体；P5 补齐（`/api/notices/*` 尤重，前端已用）。
+
+   **5b.（2026-10-01 实测新增）controller 层还有 7 个未登记的 `Result.success(null)` 桩**（service 层根本没实现对应方法，属"要写业务"而非"忘了接线"）：
+   - `QuestionController`：`createQuestion`、`updateQuestion`（→ 前端新建/编辑题目后拿不到返回体）、`getQuestionsByCategory`、`getQuestionsByDifficulty`、`getRandomQuestions`（→ **刷题页与按分类/难度筛选全空**）
+   - `ExamController.getMyRecords`（→ 「我的考试记录」空）
+   - `UserController.login`（已在 P2 计划内）
+   另有 9 处 `Result<Void>` 返回 `success(null)` 是合法的（增删改无返回体），不算桩。实测公告 3 个接口是 **HTTP 200 + 0 字节空 body**（连 JSON 都没有）。
+
+   **5c.（2026-10-01 实测新增）`scripts/smoke.sh` 断言过松**：只校验 HTTP 与 `code==200`，不校验 `data` 非空，导致 `/api/stats/overview`、`/api/videos` 这类返回 `data:null` 的桩接口被判 **OK**（本次 9 项全 PASS 但其中至少 2 项实际取不到数据）。P5 给冒烟加一条「关键只读接口必须断言 data 非空/非 null」。
 6. **HTTP 约定**：成功/业务/校验/方法/媒体类型错误均 HTTP 200 + 响应体 `code`；仅未映射路径返回真正 404。前端按 `code` 判断，勿只依赖 HTTP 状态。
 7. **CORS**：默认仅放行 `http://localhost:3001`；其他来源需配 `app.cors.allowed-origins`。前端端口改为 8090 后，P6 需同步。
 8. **DB 基线含 `SET @@GLOBAL.GTID_PURGED=...`**：导入非空实例会报错；P3 恢复脚本需去掉/调整该行。
 9. **`MyBatisGeneratoir.java`** 是代码生成器工具（非测试），位于 `src/test`，建议 P4 移出或 `@Disabled`。
 10. **MinIO 状态**：Docker 里，当前未启动；涉及文件上传的接口联调前需先起 Redis/MinIO。
+
+来自 P2（2026-10-01 实测，详见 `docs/superpowers/2026-10-01-p2-auth-completion.md` §4）：
+
+11. **`/api/exams/{id}` 无数据级 ownership 校验**：学生令牌可读到别人的考试记录（实测 `GET /api/exams/38` → 200）。URL 规则只管角色，归属要在 service 层按 token 的 userId 过滤 → 归 P4。
+12. **删除不存在的资源返回 `code:500`「系统繁忙」而非 404/业务码**（实测 `DELETE /api/categories/999999`），被 `GlobalExceptionHandler` 的兜底 `Exception` 吞掉 → 归 P5。
+13. **匿名访问 `/home` 会被弹到登录页**：计划的前台放行清单不含题库/排行/统计，故首页热门题目 401。需要公开演示的话，应在 P5 提供脱敏只读接口（现有 `questionApi.popular` 响应含答案与 `isCorrect`，不能直接放行）。
 
 ---
 
@@ -514,7 +529,8 @@ P1 采用「子代理逐任务 + 任务级评审 + 最终整分支评审」的�
 ### 11.1 后端接口现状（14 控制器）
 
 ```
-/api/user:        POST /login(空壳)  GET /check-admin/{userId}(恒true)
+/api/auth:        POST /login /refresh /logout  GET /me   (P2 新增，JWT + Redis refresh)
+/api/user:        POST /login(委托 AuthService)  GET /check-admin/{userId}(真实判角色)
 /api/questions:   GET /list  GET /{id}  POST /  PUT /{id}  DELETE /{id}
                   GET /category/{id}  GET /difficulty/{d}  GET /random  GET /popular  POST /popular/refresh
 /api/questions/batch: GET /template  POST /preview-excel /import-excel /ai-generate /import-questions /validate
@@ -562,3 +578,4 @@ P1 采用「子代理逐任务 + 任务级评审 + 最终整分支评审」的�
 | `docs/superpowers/2026-09-30-p1-completion.md` | P1 完成报告 + 遗留事项 |
 | `docs/db/baseline/*.sql` | P0 数据库基线与数据 |
 | `scripts/smoke.sh` | 端到端冒烟 |
+| 前端 `docs/superpowers/plans/2026-10-01-p6-frontend-ts-migration.md` | **P6 前端进度与交接**（已完成清单 / 34 个待迁视图 / 迁移期兼容层删除清单 / 契约实测结论） |

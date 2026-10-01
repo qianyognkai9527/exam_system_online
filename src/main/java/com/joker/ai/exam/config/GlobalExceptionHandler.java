@@ -37,6 +37,25 @@ public class GlobalExceptionHandler {
                 .body(Result.error(ErrorCode.NOT_FOUND.getCode(), ErrorCode.NOT_FOUND.getMessage()));
     }
 
+    /**
+     * 框架级鉴权异常保留真实 HTTP 状态，便于前端区分「未登录」与「业务错误」；
+     * 注意业务侧用 BizException(UNAUTHORIZED) 抛出的登录失败仍走 HTTP 200 + code（见 §9.6 约定）。
+     */
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<Result<Void>> handleAuthenticationException(
+            org.springframework.security.core.AuthenticationException e) {
+        log.warn("认证失败：{}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Result.error(ErrorCode.UNAUTHORIZED.getCode(), ErrorCode.UNAUTHORIZED.getMessage()));
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<Result<Void>> handleAccessDenied(org.springframework.security.access.AccessDeniedException e) {
+        log.warn("无权限访问：{}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Result.error(ErrorCode.FORBIDDEN.getCode(), ErrorCode.FORBIDDEN.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public Result<Void> handleException(Exception e) {
         log.error("系统异常", e);

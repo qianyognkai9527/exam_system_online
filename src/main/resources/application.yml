@@ -62,7 +62,14 @@ kimi:
 
 app:
   cors:
-    allowed-origins: http://localhost:3001
+    # 逗号分隔；4173 是 `vite preview`（免 dev-server 联调用）
+    allowed-origins: http://localhost:3001,http://localhost:4173
+  jwt:
+    # 必须由环境变量 JWT_SECRET 或 application-local.yml 提供，缺失时应用启动即失败（见 JwtProperties）
+    secret: ${JWT_SECRET:}
+    issuer: exam-system-online
+    access-ttl-seconds: 7200
+    refresh-ttl-seconds: 604800
 
 management:
   endpoints:

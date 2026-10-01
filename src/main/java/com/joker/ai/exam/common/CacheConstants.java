@@ -57,6 +57,11 @@ public class CacheConstants {
     public static final int POPULAR_QUESTIONS_COUNT = 10;
     
     /**
+     * 刷新令牌 key 前缀（值为 userId，TTL 即刷新令牌有效期）
+     */
+    public static final String AUTH_REFRESH_KEY = "auth:refresh:";
+
+    /**
      * 缓存过期时间（秒）
      */
     public static final long DEFAULT_EXPIRE_SECONDS = 1800; // 30分钟
